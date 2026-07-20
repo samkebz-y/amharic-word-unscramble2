@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>አማርኛ Word Unscramble - Amharic Word Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans Ethiopic', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh; display: flex; justify-content: center; align-items: center;
+            padding: 20px; color: #fff;
+        }
+        .game-container {
+            background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);
+            border-radius: 24px; border: 1px solid rgba(255,255,255,0.1);
+            padding: 40px; max-width: 600px; width: 100%;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+        .title {
+            text-align: center; font-size: 2.2rem; margin-bottom: 8px;
+            background: linear-gradient(90deg, #e94560, #ff6b6b);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .subtitle { text-align: center; color: #a0a0a0; font-size: 0.95rem; margin-bottom: 30px; }
+        .stats-bar { display: flex; justify-content: space-around; margin-bottom: 30px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 16px; }
+        .stat { text-align: center; }
+        .stat-value { font-size: 1.8rem; font-weight: 700; color: #e94560; }
+        .stat-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .scrambled-word { text-align: center; font-size: 3rem; font-weight: 700; color: #ffd700; margin: 30px 0; letter-spacing: 8px; min-height: 80px; display: flex; align-items: center; justify-content: center; direction: ltr; }
+        .hint-text { text-align: center; color: #a0d8ef; font-size: 1rem; margin-bottom: 20px; min-height: 24px; font-style: italic; }
+        .input-area { margin-bottom: 20px; }
+        .word-input {
+            width: 100%; padding: 18px 24px; font-size: 1.5rem;
+            font-family: 'Noto Sans Ethiopic', sans-serif; text-align: center;
+            border: 2px solid rgba(255,255,255,0.1); border-radius: 16px;
+            background: rgba(0,0,0,0.2); color: #fff; outline: none; transition: all 0.3s ease;
+        }
+        .word-input:focus { border-color: #e94560; box-shadow: 0 0 20px rgba(233,69,96,0.2); }
+        .word-input.correct { border-color: #2ecc71; background: rgba(46,204,113,0.1); }
+        .word-input.wrong { border-color: #e74c3c; animation: shake 0.5s ease; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)} 40%{transform:translateX(10px)} 60%{transform:translateX(-10px)} 80%{transform:translateX(10px)} }
+        .buttons { display: flex; gap: 12px; margin-bottom: 20px; }
+        .btn { flex: 1; padding: 14px 20px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-family: inherit; }
+        .btn-primary { background: linear-gradient(135deg, #e94560, #c73e54); color: #fff; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(233,69,96,0.3); }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+        .message { text-align: center; font-size: 1.1rem; min-height: 30px; margin-bottom: 15px; font-weight: 600; }
+        .message.success { color: #2ecc71; }
+        .message.error { color: #e74c3c; }
+        .message.info { color: #f39c12; }
+        .progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-bottom: 20px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #e94560, #ff6b6b); border-radius: 3px; transition: width 0.5s ease; }
+        .difficulty-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; }
+        .diff-btn { padding: 8px 20px; border: 2px solid rgba(255,255,255,0.2); background: transparent; color: #fff; border-radius: 20px; cursor: pointer; font-size: 0.85rem; transition: all 0.3s ease; }
+        .diff-btn.active { background: #e94560; border-color: #e94560; }
+        .diff-btn:hover:not(.active) { border-color: #e94560; }
+        .timer { text-align: center; font-size: 1.2rem; color: #ffd700; margin-bottom: 15px; }
+        .timer.warning { color: #e74c3c; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        .game-over { text-align: center; padding: 30px; }
+        .game-over h2 { font-size: 2rem; margin-bottom: 15px; color: #e94560; }
+        .game-over p { font-size: 1.1rem; color: #a0a0a0; margin-bottom: 25px; }
+        .final-score { font-size: 3rem; color: #ffd700; font-weight: 700; }
+        .hidden { display: none !important; }
+        .letter-tiles { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 20px 0; min-height: 60px; }
+        .tile { width: 50px; height: 50px; background: linear-gradient(135deg, #e94560, #c73e54); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; user-select: none; }
+        .tile:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(233,69,96,0.3); }
+        .tile.used { opacity: 0.3; transform: scale(0.9); pointer-events: none; }
+        .answer-slots { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 20px 0; min-height: 60px; }
+        .slot { width: 50px; height: 50px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; background: rgba(255,255,255,0.05); }
+        .slot.filled { border-style: solid; border-color: #e94560; background: rgba(233,69,96,0.1); }
+        .mode-toggle { text-align: center; margin-bottom: 20px; }
+        .mode-btn { padding: 6px 16px; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: #888; border-radius: 20px; cursor: pointer; font-size: 0.8rem; margin: 0 5px; transition: all 0.3s ease; }
+        .mode-btn.active { background: rgba(233,69,96,0.2); color: #e94560; border-color: #e94560; }
+        @media (max-width: 480px) { .game-container { padding: 25px 20px; } .title { font-size: 1.6rem; } .scrambled-word { font-size: 2rem; letter-spacing: 4px; } .word-input { font-size: 1.2rem; padding: 14px 18px; } }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="title">አማርኛ Word Unscramble</h1>
+        <p class="subtitle">Unscramble the Amharic words!</p>
+        
+        <div class="difficulty-selector" id="difficultySelector">
+            <button class="diff-btn active" data-diff="easy">Easy</button>
+            <button class="diff-btn" data-diff="medium">Medium</button>
+            <button class="diff-btn" data-diff="hard">Hard</button>
+        </div>
+        
+        <div class="mode-toggle" id="modeToggle">
+            <button class="mode-btn active" data-mode="type">Type Mode</button>
+            <button class="mode-btn" data-mode="drag">Drag & Drop</button>
+        </div>
+        
+        <div class="stats-bar">
+            <div class="stat"><div class="stat-value" id="score">0</div><div class="stat-label">Score</div></div>
+            <div class="stat"><div class="stat-value" id="streak">0</div><div class="stat-label">Streak</div></div>
+            <div class="stat"><div class="stat-value" id="level">1</div><div class="stat-label">Level</div></div>
+        </div>
+        
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width: 0%"></div></div>
+        <div class="timer" id="timer">⏱️ 30s</div>
+        
+        <div id="gameArea">
+            <div class="scrambled-word" id="scrambledWord">Loading...</div>
+            <div class="hint-text" id="hintText"></div>
+            
+            <div id="typeMode">
+                <div class="input-area">
+                    <input type="text" class="word-input" id="wordInput" placeholder="Type the word here..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                </div>
+            </div>
+            
+            <div id="dragMode" class="hidden">
+                <div class="letter-tiles" id="letterTiles"></div>
+                <div class="answer-slots" id="answerSlots"></div>
+            </div>
+            
+            <div class="message" id="message"></div>
+            
+            <div class="buttons">
+                <button class="btn btn-primary" id="submitBtn">Submit</button>
+                <button class="btn btn-secondary" id="hintBtn">💡 Hint (-5 pts)</button>
+                <button class="btn btn-secondary" id="skipBtn">Skip</button>
+            </div>
+        </div>
+        
+        <div class="game-over hidden" id="gameOver">
+            <h2>🎉 Game Over!</h2>
+            <p>Great job! Here's how you did:</p>
+            <div class="final-score" id="finalScore">0</div>
+            <p>Words solved: <span id="wordsSolved">0</span></p>
+            <p>Best streak: <span id="bestStreak">0</span></p>
+            <br>
+            <button class="btn btn-primary" id="restartBtn" style="max-width: 200px;">Play Again</button>
+        </div>
+    </div>
+
+<script>
+const wordDatabase={easy:[{word:"ሰላም",meaning:"Peace / Hello",hint:"A common greeting"},{word:"ውሃ",meaning:"Water",hint:"Essential for life"},{word:"ፍቅር",meaning:"Love",hint:"Deep affection"},{word:"ቤት",meaning:"House",hint:"Where you live"},{word:"መኪና",meaning:"Car",hint:"A vehicle"},{word:"ሀገር",meaning:"Country",hint:"A nation"},{word:"እህት",meaning:"Sister",hint:"Female sibling"},{word:"ወንድም",meaning:"Brother",hint:"Male sibling"},{word:"አባት",meaning:"Father",hint:"Male parent"},{word:"እናት",meaning:"Mother",hint:"Female parent"},{word:"ጤና",meaning:"Health",hint:"Wellness"},{word:"ጠላ",meaning:"Beer",hint:"Traditional drink"},{word:"ዶሮ",meaning:"Chicken",hint:"A bird we eat"},{word:"ሩዝ",meaning:"Rice",hint:"A grain"},{word:"ሲኒ",meaning:"Cup",hint:"For drinking"}],medium:[{word:"መፃህፍት",meaning:"Books",hint:"Reading materials"},{word:"ዩኒቨርሲቲ",meaning:"University",hint:"Higher education"},{word:"ሆስፒታል",meaning:"Hospital",hint:"Medical facility"},{word:"መስኮት",meaning:"Window",hint:"Glass opening in wall"},{word:"አየር",meaning:"Air / Sky",hint:"What we breathe"},{word:"ወፍ",meaning:"Bird",hint:"Flying creature"},{word:"አብዮት",meaning:"Revolution",hint:"Major change"},{word:"አስተማሪ",meaning:"Teacher",hint:"Educates students"},{word:"ተማሪ",meaning:"Student",hint:"Learns at school"},{word:"መንገድ",meaning:"Road",hint:"Path for travel"},{word:"አየርላይን",meaning:"Airplane",hint:"Flies in sky"},{word:"ሬስቶራንት",meaning:"Restaurant",hint:"Where you eat out"},{word:"ኮምፒዩተር",meaning:"Computer",hint:"Electronic device"},{word:"ቴሌቪዥን",meaning:"Television",hint:"Shows programs"},{word:"ቴሌፎን",meaning:"Telephone",hint:"For calling"}],hard:[{word:"አየርሚያል",meaning:"Army",hint:"Military force"},{word:"አስተዳደር",meaning:"Administration",hint:"Management"},{word:"መንግስት",meaning:"Government",hint:"Runs the country"},{word:"ሀሳብ",meaning:"Idea / Thought",hint:"Mental concept"},{word:"አስተያየት",meaning:"Opinion",hint:"Personal view"},{word:"መረጃ",meaning:"Information",hint:"Data or facts"},{word:"ቴክኖሎጂ",meaning:"Technology",hint:"Modern tools"},{word:"ኢንጂነሪንግ",meaning:"Engineering",hint:"Applied science"},{word:"አርክቴክቸር",meaning:"Architecture",hint:"Building design"},{word:"ሳይንስ",meaning:"Science",hint:"Systematic knowledge"},{word:"ማቴማቲክስ",meaning:"Mathematics",hint:"Numbers and logic"},{word:"ፊሎሶፊ",meaning:"Philosophy",hint:"Study of wisdom"},{word:"ሳይኮሎጂ",meaning:"Psychology",hint:"Study of mind"},{word:"ኢኮኖሚ",meaning:"Economy",hint:"Financial system"},{word:"ፖለቲካ",meaning:"Politics",hint:"Governance affairs"}]};
+let currentDifficulty='easy',currentMode='type',currentWord=null,score=0,streak=0,bestStreak=0,level=1,wordsSolved=0,timer=null,timeLeft=30,usedWords=new Set,hintUsed=false,dragAnswer=[];
+const scrambledWordEl=document.getElementById('scrambledWord'),hintTextEl=document.getElementById('hintText'),wordInput=document.getElementById('wordInput'),scoreEl=document.getElementById('score'),streakEl=document.getElementById('streak'),levelEl=document.getElementById('level'),messageEl=document.getElementById('message'),timerEl=document.getElementById('timer'),progressFill=document.getElementById('progressFill'),gameArea=document.getElementById('gameArea'),gameOverScreen=document.getElementById('gameOver'),finalScoreEl=document.getElementById('finalScore'),wordsSolvedEl=document.getElementById('wordsSolved'),bestStreakEl=document.getElementById('bestStreak'),typeMode=document.getElementById('typeMode'),dragMode=document.getElementById('dragMode'),letterTilesEl=document.getElementById('letterTiles'),answerSlotsEl=document.getElementById('answerSlots');
+function shuffleWord(word){const chars=Array.from(word);for(let i=chars.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[chars[i],chars[j]]=[chars[j],chars[i]]}const shuffled=chars.join('');if(shuffled===word&&word.length>1)return shuffleWord(word);return shuffled}
+function getNextWord(){const pool=wordDatabase[currentDifficulty];const available=pool.filter(w=>!usedWords.has(w.word));if(available.length===0){usedWords.clear();return pool[Math.floor(Math.random()*pool.length)]}return available[Math.floor(Math.random()*available.length)]}
+function newRound(){currentWord=getNextWord();usedWords.add(currentWord.word);hintUsed=false;hintTextEl.textContent='';messageEl.textContent='';messageEl.className='message';wordInput.value='';wordInput.className='word-input';wordInput.disabled=false;wordInput.focus();const scrambled=shuffleWord(currentWord.word);scrambledWordEl.textContent=scrambled;clearInterval(timer);timeLeft=currentDifficulty==='easy'?30:currentDifficulty==='medium'?45:60;updateTimer();timer=setInterval(()=>{timeLeft--;updateTimer();if(timeLeft<=0)handleTimeout()},1000);if(currentMode==='drag')setupDragMode();updateProgress()}
+function updateTimer(){timerEl.textContent='⏱️ '+timeLeft+'s';if(timeLeft<=10)timerEl.classList.add('warning');else timerEl.classList.remove('warning')}
+function updateProgress(){const totalInDifficulty=wordDatabase[currentDifficulty].length;const progress=(usedWords.size/totalInDifficulty)*100;progressFill.style.width=Math.min(progress,100)+'%'}
+function handleTimeout(){clearInterval(timer);wordInput.disabled=true;messageEl.textContent="⏰ Time's up! The word was: "+currentWord.word+" ("+currentWord.meaning+")";messageEl.className='message error';streak=0;streakEl.textContent=streak;setTimeout(()=>newRound(),2500)}
+function checkAnswer(){const input=currentMode==='type'?wordInput.value.trim():dragAnswer.join('');if(!input)return;if(input===currentWord.word){clearInterval(timer);wordInput.className='word-input correct';let points=currentDifficulty==='easy'?10:currentDifficulty==='medium'?20:30;if(!hintUsed)points+=5;streak++;if(streak>bestStreak)bestStreak=streak;wordsSolved++;if(wordsSolved%5===0){level++;levelEl.textContent=level}score+=points+(streak*2);scoreEl.textContent=score;streakEl.textContent=streak;messageEl.textContent='✅ Correct! +'+(points+(streak*2))+' points ('+currentWord.meaning+')';messageEl.className='message success';wordInput.disabled=true;setTimeout(()=>newRound(),2000)}else{wordInput.className='word-input wrong';streak=0;streakEl.textContent=streak;messageEl.textContent='❌ Try again!';messageEl.className='message error';setTimeout(()=>{wordInput.className='word-input';if(currentMode==='drag')resetDragAnswer()},600)}}
+function showHint(){if(hintUsed)return;hintUsed=true;score=Math.max(0,score-5);scoreEl.textContent=score;hintTextEl.textContent='💡 '+currentWord.hint;messageEl.textContent='Hint used (-5 points)';messageEl.className='message info'}
+function skipWord(){clearInterval(timer);streak=0;streakEl.textContent=streak;messageEl.textContent='Skipped! The word was: '+currentWord.word+' ('+currentWord.meaning+')';messageEl.className='message info';wordInput.disabled=true;setTimeout(()=>newRound(),2000)}
+function restartGame(){score=0;streak=0;bestStreak=0;level=1;wordsSolved=0;usedWords.clear();scoreEl.textContent='0';streakEl.textContent='0';levelEl.textContent='1';gameOverScreen.classList.add('hidden');gameArea.classList.remove('hidden');newRound()}
+function setupDragMode(){dragAnswer=[];const chars=Array.from(currentWord.word);const shuffled=shuffleWord(currentWord.word);const shuffledChars=Array.from(shuffled);letterTilesEl.innerHTML='';answerSlotsEl.innerHTML='';shuffledChars.forEach((char,index)=>{const tile=document.createElement('div');tile.className='tile';tile.textContent=char;tile.dataset.char=char;tile.dataset.index=index;tile.onclick=()=>selectTile(tile,char);letterTilesEl.appendChild(tile)});chars.forEach(()=>{const slot=document.createElement('div');slot.className='slot';slot.onclick=()=>removeFromSlot(slot);answerSlotsEl.appendChild(slot)})}
+function selectTile(tile,char){if(tile.classList.contains('used'))return;const emptySlot=Array.from(answerSlotsEl.children).find(s=>!s.textContent);if(!emptySlot)return;tile.classList.add('used');emptySlot.textContent=char;emptySlot.classList.add('filled');emptySlot.dataset.sourceIndex=tile.dataset.index;dragAnswer=Array.from(answerSlotsEl.children).map(s=>s.textContent||'');if(dragAnswer.every(c=>c!==''))setTimeout(()=>checkAnswer(),300)}
+function removeFromSlot(slot){if(!slot.textContent)return;const sourceIndex=slot.dataset.sourceIndex;const tiles=letterTilesEl.children;if(tiles[sourceIndex])tiles[sourceIndex].classList.remove('used');slot.textContent='';slot.classList.remove('filled');slot.dataset.sourceIndex='';dragAnswer=Array.from(answerSlotsEl.children).map(s=>s.textContent||'')}
+function resetDragAnswer(){dragAnswer=[];const tiles=letterTilesEl.children;for(let i=0;i<tiles.length;i++)tiles[i].classList.remove('used');const slots=answerSlotsEl.children;for(let i=0;i<slots.length;i++){slots[i].textContent='';slots[i].classList.remove('filled');slots[i].dataset.sourceIndex=''}}
+document.getElementById('submitBtn').addEventListener('click',checkAnswer);document.getElementById('hintBtn').addEventListener('click',showHint);document.getElementById('skipBtn').addEventListener('click',skipWord);document.getElementById('restartBtn').addEventListener('click',restartGame);wordInput.addEventListener('keypress',e=>{if(e.key==='Enter')checkAnswer()});document.querySelectorAll('.diff-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');currentDifficulty=btn.dataset.diff;usedWords.clear();newRound()})});document.querySelectorAll('.mode-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');currentMode=btn.dataset.mode;if(currentMode==='type'){typeMode.classList.remove('hidden');dragMode.classList.add('hidden');wordInput.focus()}else{typeMode.classList.add('hidden');dragMode.classList.remove('hidden');setupDragMode()}})});newRound();
+</script>
+</body>
+</html>
