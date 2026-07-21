@@ -160,5 +160,10 @@ function removeFromSlot(slot){if(!slot.textContent)return;const sourceIndex=slot
 function resetDragAnswer(){dragAnswer=[];const tiles=letterTilesEl.children;for(let i=0;i<tiles.length;i++)tiles[i].classList.remove('used');const slots=answerSlotsEl.children;for(let i=0;i<slots.length;i++){slots[i].textContent='';slots[i].classList.remove('filled');slots[i].dataset.sourceIndex=''}}
 document.getElementById('submitBtn').addEventListener('click',checkAnswer);document.getElementById('hintBtn').addEventListener('click',showHint);document.getElementById('skipBtn').addEventListener('click',skipWord);document.getElementById('restartBtn').addEventListener('click',restartGame);wordInput.addEventListener('keypress',e=>{if(e.key==='Enter')checkAnswer()});document.querySelectorAll('.diff-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');currentDifficulty=btn.dataset.diff;usedWords.clear();newRound()})});document.querySelectorAll('.mode-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');currentMode=btn.dataset.mode;if(currentMode==='type'){typeMode.classList.remove('hidden');dragMode.classList.add('hidden');wordInput.focus()}else{typeMode.classList.add('hidden');dragMode.classList.remove('hidden');setupDragMode()}})});newRound();
 </script>
+    <script data-goatcounter="https://zeltasss.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
+
 </body>
 </html>
